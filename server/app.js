@@ -15,7 +15,6 @@ const route = require('./middlewares/route');
 const userRoutes = require('./routes/user');
 const groupRoutes = require('./routes/group');
 const messageRoutes = require('./routes/message');
-const qiniuRoutes = require('./routes/qiniu');
 const systemRoutes = require('./routes/system');
 
 const Socket = require('./models/socket');
@@ -75,7 +74,7 @@ io.use(isLogin());
 io.use(route(
     app.io,
     app._io,
-    Object.assign({}, userRoutes, groupRoutes, messageRoutes, qiniuRoutes, systemRoutes),
+    Object.assign({}, userRoutes, groupRoutes, messageRoutes, systemRoutes),
 ));
 
 app.io.on('connection', async (ctx) => {

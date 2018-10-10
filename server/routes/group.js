@@ -112,6 +112,7 @@ module.exports = {
 
         return {};
     },
+
     async getGroupOnlineMembers(ctx) {
         const { groupId } = ctx.data;
         assert(isValid(groupId), '无效的群组ID');
@@ -120,11 +121,13 @@ module.exports = {
         assert(group, '群组不存在');
         return getGroupOnlineMembers(group);
     },
+
     async getDefaultGroupOnlineMembers() {
         const group = await Group.findOne({ isDefault: true });
         assert(group, '群组不存在');
         return getGroupOnlineMembers(group);
     },
+
     async changeGroupAvatar(ctx) {
         const { groupId, avatar } = ctx.data;
         assert(isValid(groupId), '无效的群组ID');

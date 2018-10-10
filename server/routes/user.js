@@ -16,11 +16,6 @@ const saltRounds = 10;
 
 const OneDay = 1000 * 60 * 60 * 24;
 
-/**
- * 生成token
- * @param {User} user 用户
- * @param {Object} environment 客户端信息
- */
 function generateToken(user, environment) {
     return jwt.encode(
         {
@@ -32,12 +27,7 @@ function generateToken(user, environment) {
     );
 }
 
-/**
- * 处理注册时间不满24小时的用户
- * @param {User} user 用户
- */
 function handleNewUser(user) {
-    // 将用户添加到新用户列表, 24小时后删除
     if (Date.now() - user.createTime.getTime() < OneDay) {
         const newUserList = global.mdb.get('newUserList');
         newUserList.add(user._id.toString());
@@ -52,14 +42,14 @@ module.exports = {
         const {
             username, password, os, browser, environment,
         } = ctx.data;
-        assert(username, '用户名不能为空');
-        assert(password, '密码不能为空');
+        assert(username, 'username');
+        assert(password, 'password');
 
         const user = await User.findOne({ username });
-        assert(!user, '该用户名已存在');
+        assert(!user, 'user');
 
         const defaultGroup = await Group.findOne({ isDefault: true });
-        assert(defaultGroup, '默认群组不存在');
+        assert(defaultGroup, 'defaultGroup');
 
         const salt = await bcrypt.genSalt$(saltRounds);
         const hash = await bcrypt.hash$(password, salt);
@@ -74,7 +64,7 @@ module.exports = {
             });
         } catch (err) {
             if (err.name === 'ValidationError') {
-                return '用户名包含不支持的字符或者长度超过限制';
+                return 'validation error';
             }
             throw err;
         }
@@ -112,19 +102,19 @@ module.exports = {
         };
     },
     async login(ctx) {
-        assert(!ctx.socket.user, '你已经登录了');
+        assert(!ctx.socket.user, 'user');
 
         const {
             username, password, os, browser, environment,
         } = ctx.data;
-        assert(username, '用户名不能为空');
-        assert(password, '密码不能为空');
+        assert(username, 'username');
+        assert(password, 'password');
 
         const user = await User.findOne({ username });
-        assert(user, '该用户不存在');
+        assert(user, 'user');
 
         const isPasswordCorrect = bcrypt.compareSync(password, user.password);
-        assert(isPasswordCorrect, '密码错误');
+        assert(isPasswordCorrect, 'incorrect password');
 
         handleNewUser(user);
 
@@ -161,25 +151,25 @@ module.exports = {
         };
     },
     async loginByToken(ctx) {
-        assert(!ctx.socket.user, '你已经登录了');
+        assert(!ctx.socket.user, 'user');
 
         const {
             token, os, browser, environment,
         } = ctx.data;
-        assert(token, 'token不能为空');
+        assert(token, 'token');
 
         let payload = null;
         try {
             payload = jwt.decode(token, config.jwtSecret);
         } catch (err) {
-            return '非法token';
+            return 'invalid token';
         }
 
-        assert(Date.now() < payload.expires, 'token已过期');
-        assert.equal(environment, payload.environment, '非法登录');
+        assert(Date.now() < payload.expires, 'token expires');
+        assert.equal(environment, payload.environment, 'invalid environment');
 
         const user = await User.findOne({ _id: payload.user }, { _id: 1, avatar: 1, username: 1, createTime: 1 });
-        assert(user, '用户不存在');
+        assert(user, 'user not found');
 
         handleNewUser(user);
 
@@ -212,6 +202,7 @@ module.exports = {
             isAdmin: user._id.toString() === config.administrator,
         };
     },
+
     async guest(ctx) {
         const { os, browser, environment } = ctx.data;
 
@@ -235,9 +226,10 @@ module.exports = {
 
         return Object.assign({ messages }, group.toObject());
     },
+
     async changeAvatar(ctx) {
         const { avatar } = ctx.data;
-        assert(avatar, '新头像链接不能为空');
+        assert(avatar, 'avatar');
 
         await User.update({ _id: ctx.socket.user }, {
             avatar,
@@ -245,15 +237,16 @@ module.exports = {
 
         return {};
     },
+
     async addFriend(ctx) {
         const { userId } = ctx.data;
-        assert(isValid(userId), '无效的用户ID');
+        assert(isValid(userId), 'userId');
 
         const user = await User.findOne({ _id: userId });
-        assert(user, '添加好友失败, 用户不存在');
+        assert(user, 'user');
 
         const friend = await Friend.find({ from: ctx.socket.user, to: user._id });
-        assert(friend.length === 0, '你们已经是好友了');
+        assert(friend.length === 0, 'friend');
 
         const newFriend = await Friend.create({
             from: ctx.socket.user,
@@ -270,25 +263,23 @@ module.exports = {
     },
     async deleteFriend(ctx) {
         const { userId } = ctx.data;
-        assert(isValid(userId), '无效的用户ID');
+        assert(isValid(userId), 'userId');
 
         const user = await User.findOne({ _id: userId });
-        assert(user, '用户不存在');
+        assert(user, 'user');
 
         await Friend.remove({ from: ctx.socket.user, to: user._id });
         return {};
     },
-    /**
-     * 修改用户密码
-     */
+
     async changePassword(ctx) {
         const { oldPassword, newPassword } = ctx.data;
-        assert(newPassword, '新密码不能为空');
-        assert(oldPassword !== newPassword, '新密码不能与旧密码相同');
+        assert(newPassword, 'newPassword');
+        assert(oldPassword !== newPassword, 'oldPassword');
 
         const user = await User.findOne({ _id: ctx.socket.user });
         const isPasswordCorrect = bcrypt.compareSync(oldPassword, user.password);
-        assert(isPasswordCorrect, '旧密码不正确');
+        assert(isPasswordCorrect, 'isPasswordCorrect');
 
         const salt = await bcrypt.genSalt$(saltRounds);
         const hash = await bcrypt.hash$(newPassword, salt);

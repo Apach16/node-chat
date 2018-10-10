@@ -8,9 +8,6 @@ const User = require('../models/user');
 const Group = require('../models/group');
 const config = require('../../config/server');
 
-let baiduToken = '';
-let lastBaiduTokenTime = Date.now();
-
 module.exports = {
     async search(ctx) {
         const { keywords } = ctx.data;
@@ -51,18 +48,6 @@ module.exports = {
 
         const images = res.data.match(/data-original="[^ "]+"/g) || [];
         return images.map(i => i.substring(15, i.length - 1));
-    },
-    async getBaiduToken() {
-        if (baiduToken && Date.now() < lastBaiduTokenTime) {
-            return { token: baiduToken };
-        }
-
-        const res = await axios.get('https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=pw152BzvaSZVwrUf3Z2OHXM6&client_secret=fa273cc704b080e85ad61719abbf7794');
-        assert(res.status === 200, '请求百度token失败');
-
-        baiduToken = res.data.access_token;
-        lastBaiduTokenTime = Date.now() + (res.data.expires_in - 60 * 60 * 24) * 1000;
-        return { token: baiduToken };
     },
     async sealUser(ctx) {
         assert(ctx.socket.user.toString() === config.administrator, '你不是管理员');
