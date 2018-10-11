@@ -12,6 +12,7 @@ const frequency = require('./middlewares/frequency');
 const isLogin = require('./middlewares/isLogin');
 const route = require('./middlewares/route');
 
+const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const groupRoutes = require('./routes/group');
 const messageRoutes = require('./routes/message');
@@ -74,7 +75,7 @@ io.use(isLogin());
 io.use(route(
     app.io,
     app._io,
-    Object.assign({}, userRoutes, groupRoutes, messageRoutes, systemRoutes),
+    Object.assign({}, authRoutes, userRoutes, groupRoutes, messageRoutes, systemRoutes),
 ));
 
 app.io.on('connection', async (ctx) => {

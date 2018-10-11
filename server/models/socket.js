@@ -18,18 +18,6 @@ const SocketSchema = new Schema({
     ip: {
         type: String,
     },
-    os: {
-        type: String,
-        default: '',
-    },
-    browser: {
-        type: String,
-        default: '',
-    },
-    environment: {
-        type: String,
-        default: '',
-    },
 });
 
 const Socket = mongoose.model('Socket', SocketSchema);

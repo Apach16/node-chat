@@ -23,10 +23,6 @@ const GroupSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
     },
-    isDefault: {
-        type: Boolean,
-        default: false,
-    },
     members: [
         {
             type: Schema.Types.ObjectId,

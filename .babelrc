@@ -4,28 +4,14 @@
         [
             "env",
             {
-                "targets": {
-                    "browsers": ["last 3 versions"]
-                },
                 "modules": false
             }
         ],
-        "react"
+        "node"
     ],
     "plugins": [
-        "react-hot-loader/babel",
         "transform-decorators-legacy",
         "transform-class-properties",
-        [
-            "react-transform",
-            {
-                "transforms": [
-                    {
-                        "transform": "react-transform-style"
-                    }
-                ]
-            }
-        ],
         [
             "prismjs", {
                 "languages": ["clike", "javascript", "typescript", "java", "c", "cpp", "python", "ruby", "markup", "markup-templating", "php", "go", "csharp", "css", "markdown", "sql", "json" ],
@@ -43,18 +29,7 @@
             ]
         },
         "development": {
-            "plugins": [
-                [
-                    "react-transform",
-                    {
-                        "transforms": [
-                            {
-                                "transform": "react-transform-log-render"
-                            }
-                        ]
-                    }
-                ]
-            ]
+            "plugins": [ ]
         }
     }
 }
