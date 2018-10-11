@@ -1,8 +1,5 @@
 const assert = require('assert');
 
-/**
- * 全局异常捕获
- */
 module.exports = function () {
     return async (ctx, next) => {
         try {

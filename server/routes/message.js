@@ -115,18 +115,4 @@ module.exports = {
         const result = messages.slice(existCount).reverse();
         return result;
     },
-    async getDefalutGroupHistoryMessages(ctx) {
-        const { existCount } = ctx.data;
-
-        const group = await Group.findOne({ isDefault: true });
-        const messages = await Message
-            .find(
-                { to: group._id },
-                { type: 1, content: 1, from: 1, createTime: 1 },
-                { sort: { createTime: -1 }, limit: EachFetchMessagesCount + existCount },
-            )
-            .populate('from', { username: 1, avatar: 1 });
-        const result = messages.slice(existCount).reverse();
-        return result;
-    },
 };

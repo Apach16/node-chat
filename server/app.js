@@ -64,7 +64,6 @@ if (process.env.NODE_ENV === 'production' && config.allowOrigin) {
     app._io.origins(config.allowOrigin);
 }
 
-
 // custom middleware
 io.use(enhanceContext());
 io.use(log());
