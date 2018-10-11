@@ -6,4 +6,3 @@ yarn-error.log
 .eslintcache
 runServer.sh
 build.sh
-.qiniurc

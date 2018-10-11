@@ -12,8 +12,6 @@ const config = require('../../config/server');
 
 const saltRounds = 10;
 
-const OneDay = 1000 * 60 * 60 * 24;
-
 function generateToken(user) {
     return jwt.encode(
         {
@@ -24,17 +22,15 @@ function generateToken(user) {
     );
 }
 
-function handleNewUser(user) {
-    if (Date.now() - user.createTime.getTime() < OneDay) {
-        const newUserList = global.mdb.get('newUserList');
-        newUserList.add(user._id.toString());
-        setTimeout(() => {
-            newUserList.delete(user._id.toString());
-        }, OneDay);
-    }
-}
-
 module.exports = {
+    /**
+     * @api {ws} register Register method
+     * @apiName Register
+     * @apiGroup Auth
+     *
+     * @apiParam {String} username User name.
+     * @apiParam {String} password User password.
+     */
     async register(ctx) {
         const {
             username, password,
@@ -63,8 +59,6 @@ module.exports = {
             throw err;
         }
 
-        handleNewUser(newUser);
-
         const token = generateToken(newUser._id);
 
         ctx.socket.user = newUser._id;
@@ -83,6 +77,14 @@ module.exports = {
         };
     },
 
+    /**
+     * @api {ws} login Login method
+     * @apiName Login
+     * @apiGroup Auth
+     *
+     * @apiParam {String} username User name.
+     * @apiParam {String} password User password.
+     */
     async login(ctx) {
         assert(!ctx.socket.user, 'user');
 
@@ -97,8 +99,6 @@ module.exports = {
 
         const isPasswordCorrect = bcrypt.compareSync(password, user.password);
         assert(isPasswordCorrect, 'incorrect password');
-
-        handleNewUser(user);
 
         user.lastLoginTime = Date.now();
         await user.save();
@@ -130,8 +130,15 @@ module.exports = {
         };
     },
 
+    /**
+     * @api {ws} loginByToken Login user by token method
+     * @apiName LoginByToken
+     * @apiGroup Auth
+     *
+     * @apiParam {String} token User jwt token.
+     */
     async loginByToken(ctx) {
-        assert(!ctx.socket.user, 'user not found');
+        assert(!ctx.socket.user, 'already log in');
 
         const { token } = ctx.data;
         assert(token, 'token not found');
@@ -147,8 +154,6 @@ module.exports = {
 
         const user = await User.findOne({ _id: payload.user }, { _id: 1, avatar: 1, username: 1, createTime: 1 });
         assert(user, 'user not found');
-
-        handleNewUser(user);
 
         user.lastLoginTime = Date.now();
         await user.save();
@@ -177,10 +182,18 @@ module.exports = {
         };
     },
 
+    /**
+     * @api {ws} loginByToken Login user by token method
+     * @apiName LoginByToken
+     * @apiGroup Auth
+     *
+     * @apiParam {String} oldPassword User old password.
+     * @apiParam {String} newPassword User old password.
+     */
     async changePassword(ctx) {
         const { oldPassword, newPassword } = ctx.data;
         assert(newPassword, 'newPassword');
-        assert(oldPassword !== newPassword, 'oldPassword');
+        assert(oldPassword !== newPassword, 'same password');
 
         const user = await User.findOne({ _id: ctx.socket.user });
         const isPasswordCorrect = bcrypt.compareSync(oldPassword, user.password);

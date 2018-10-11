@@ -6,12 +6,14 @@
   "license": "MIT",
   "scripts": {
     "server": "./node_modules/.bin/cross-env NODE_ENV=development && nodemon server/main.js --config .nodemonrc",
-    "lint": "./node_modules/.bin/eslint ./ --ext js --ignore-pattern .eslintignore --cache --fix"
+    "lint": "./node_modules/.bin/eslint ./ --ext js --ignore-pattern .eslintignore --cache --fix",
+    "docs": "./node_modules/apidoc/bin/apidoc -i server/ -o public/docs"
   },
   "pre-commit": [
     "lint"
   ],
   "dependencies": {
+    "apidoc": "^0.17.6",
     "autobind-decorator": "^2.1.0",
     "axios": "^0.18.0",
     "bcrypt": "^2.0.0",
@@ -23,6 +25,7 @@
     "ip": "^1.1.5",
     "jwt-simple": "^0.5.1",
     "koa": "^2.5.0",
+    "koa-mount": "^4.0.0",
     "koa-send": "^4.1.3",
     "koa-socket": "^4.4.0",
     "koa-static": "^4.0.2",
@@ -64,6 +67,7 @@
     "eslint-loader": "^1.6.3",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.11.1",
     "eventsource-polyfill": "^0.9.6",
     "express": "^4.14.1",
     "extract-text-webpack-plugin": "4.0.0-beta.0",

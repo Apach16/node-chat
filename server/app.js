@@ -3,6 +3,7 @@ const IO = require('koa-socket');
 const koaSend = require('koa-send');
 const koaStatic = require('koa-static');
 const path = require('path');
+const mount = require('koa-mount');
 
 const enhanceContext = require('./middlewares/enhanceContext.js');
 const log = require('./middlewares/log');
@@ -25,7 +26,8 @@ const config = require('../config/server');
 const app = new Koa();
 
 app.use(async (ctx, next) => {
-    if (!/\./.test(ctx.request.url)) {
+    console.log(ctx.request.url);
+    if (!/\//.test(ctx.request.url)) {
         await koaSend(
             ctx,
             'index.html',
@@ -49,6 +51,28 @@ app.use(koaStatic(
         gzip: true,
     } // eslint-disable-line
 ));
+
+// docs files
+app.use(koaStatic(
+    path.join(__dirname, '../public/docs'),
+    {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        gzip: true,
+    } // eslint-disable-line
+));
+
+// documentation
+app.use(mount('/docs', async (ctx) => {
+    await koaSend(
+        ctx,
+        'index.html',
+        {
+            root: path.join(__dirname, '../public/docs'),
+            maxage: 1000 * 60 * 60 * 24 * 7,
+            gzip: true,
+        } // eslint-disable-line
+    );
+}));
 
 const io = new IO({
     ioOptions: {

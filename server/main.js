@@ -9,7 +9,6 @@ const getRandomAvatar = require('../utils/getRandomAvatar');
 
 global.mdb = new Map();
 global.mdb.set('sealList', new Set());
-global.mdb.set('newUserList', new Set());
 
 mongoose.Promise = Promise;
 
