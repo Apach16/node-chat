@@ -1,7 +1,6 @@
 const bluebird = require('bluebird');
 const fs = bluebird.promisifyAll(require('fs'), { suffix: '$' });
 const path = require('path');
-const axios = require('axios');
 const assert = require('assert');
 const ip = require('ip');
 const User = require('../models/user');
@@ -37,30 +36,18 @@ module.exports = {
             })),
         };
     },
-    async searchExpression(ctx) {
-        const { keywords } = ctx.data;
-        if (keywords === '') {
-            return [];
-        }
-
-        const res = await axios.get(`https://www.doutula.com/search?keyword=${encodeURIComponent(keywords)}`);
-        assert(res.status === 200, '搜索表情包失败, 请重试');
-
-        const images = res.data.match(/data-original="[^ "]+"/g) || [];
-        return images.map(i => i.substring(15, i.length - 1));
-    },
     async sealUser(ctx) {
-        assert(ctx.socket.user.toString() === config.administrator, '你不是管理员');
+        assert(ctx.socket.user.toString() === config.administrator, 'not admin');
 
         const { username } = ctx.data;
-        assert(username !== '', 'username不能为空');
+        assert(username !== '', 'invalid username');
 
         const user = await User.findOne({ username });
-        assert(user, '用户不存在');
+        assert(user, 'user not found');
 
         const userId = user._id.toString();
         const sealList = global.mdb.get('sealList');
-        assert(!sealList.has(userId), '用户已在封禁名单');
+        assert(!sealList.has(userId), 'user already sealed');
 
         sealList.add(userId);
         setTimeout(() => {
@@ -72,7 +59,7 @@ module.exports = {
         };
     },
     async getSealList(ctx) {
-        assert(ctx.socket.user.toString() === config.administrator, '你不是管理员');
+        assert(ctx.socket.user.toString() === config.administrator, 'not admin');
 
         const sealList = global.mdb.get('sealList');
         const userIds = [...sealList.keys()];
@@ -88,7 +75,7 @@ module.exports = {
             };
         } catch (err) {
             console.error(err);
-            return `上传文件失败:${err.message}`;
+            return `error:${err.message}`;
         }
     },
 };

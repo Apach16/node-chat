@@ -27,13 +27,13 @@ async function getGroupOnlineMembers(group) {
 module.exports = {
     async createGroup(ctx) {
         const ownGroupCount = await Group.count({ creator: ctx.socket.user });
-        assert(ownGroupCount < config.maxGroupsCount, `创建群组失败, 你已经创建了${config.maxGroupsCount}个群组`);
+        assert(ownGroupCount < config.maxGroupsCount, `you can not create more than ${config.maxGroupsCount} groups`);
 
         const { name } = ctx.data;
-        assert(name, '群组名不能为空');
+        assert(name, 'invalid group name');
 
         const group = await Group.findOne({ name });
-        assert(!group, '该群组已存在');
+        assert(!group, 'group already exists');
 
         let newGroup = null;
         try {
@@ -45,7 +45,7 @@ module.exports = {
             });
         } catch (err) {
             if (err.name === 'ValidationError') {
-                return '群组名包含不支持的字符或者长度超过限制';
+                return 'validation error';
             }
             throw err;
         }
@@ -61,11 +61,11 @@ module.exports = {
     },
     async joinGroup(ctx) {
         const { groupId } = ctx.data;
-        assert(isValid(groupId), '无效的群组ID');
+        assert(isValid(groupId), 'group id is invalid');
 
         const group = await Group.findOne({ _id: groupId });
-        assert(group, '加入群组失败, 群组不存在');
-        assert(group.members.indexOf(ctx.socket.user) === -1, '你已经在群组中');
+        assert(group, 'group not found');
+        assert(group.members.indexOf(ctx.socket.user) === -1, 'user already in group');
 
         group.members.push(ctx.socket.user);
         await group.save();
@@ -92,18 +92,18 @@ module.exports = {
     },
     async leaveGroup(ctx) {
         const { groupId } = ctx.data;
-        assert(isValid(groupId), '无效的群组ID');
+        assert(isValid(groupId), 'invalid group id');
 
         const group = await Group.findOne({ _id: groupId });
-        assert(group, '群组不存在');
+        assert(group, 'group not found');
 
-        // 默认群组没有creator
+        // check group creator
         if (group.creator) {
-            assert(group.creator.toString() !== ctx.socket.user.toString(), '群主不可以退出自己创建的群');
+            assert(group.creator.toString() !== ctx.socket.user.toString(), 'cannot leave own group');
         }
 
         const index = group.members.indexOf(ctx.socket.user);
-        assert(index !== -1, '你不在群组中');
+        assert(index !== -1, 'cannot leave this group');
 
         group.members.splice(index, 1);
         await group.save();
@@ -115,17 +115,17 @@ module.exports = {
 
     async getGroupOnlineMembers(ctx) {
         const { groupId } = ctx.data;
-        assert(isValid(groupId), '无效的群组ID');
+        assert(isValid(groupId), 'invalid group id');
 
         const group = await Group.findOne({ _id: groupId });
-        assert(group, '群组不存在');
+        assert(group, 'group not found');
         return getGroupOnlineMembers(group);
     },
 
     async changeGroupAvatar(ctx) {
         const { groupId, avatar } = ctx.data;
-        assert(isValid(groupId), '无效的群组ID');
-        assert(avatar, '头像地址不能为空');
+        assert(isValid(groupId), 'invalid group id');
+        assert(avatar, 'invalid avatar');
 
         await Group.update({ _id: groupId }, { avatar });
         return {};

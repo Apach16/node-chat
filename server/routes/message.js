@@ -13,28 +13,28 @@ const EachFetchMessagesCount = 30;
 module.exports = {
     async sendMessage(ctx) {
         const { to, type, content } = ctx.data;
-        assert(to, 'to不能为空');
+        assert(to, 'to not provided');
 
         let groupId = '';
         let userId = '';
         if (isValid(to)) {
             groupId = to;
             const group = await Group.findOne({ _id: to });
-            assert(group, '群组不存在');
+            assert(group, 'group not found');
         } else {
             userId = to.replace(ctx.socket.user, '');
-            assert(isValid(userId), '无效的用户ID');
+            assert(isValid(userId), 'invalid user');
             const user = await User.findOne({ _id: userId });
-            assert(user, '用户不存在');
+            assert(user, 'user not found');
         }
 
         let messageContent = content;
         if (type === 'text') {
-            assert(messageContent.length <= 2048, '消息长度过长');
+            assert(messageContent.length <= 2048, 'max message length - 2048');
             messageContent = xss(content);
         } else if (type === 'invite') {
             const group = await Group.findOne({ name: content });
-            assert(group, '目标群组不存在');
+            assert(group, 'group not found');
 
             const user = await User.findOne({ _id: ctx.socket.user });
             messageContent = JSON.stringify({
@@ -102,6 +102,7 @@ module.exports = {
 
         return messages;
     },
+
     async getLinkmanHistoryMessages(ctx) {
         const { linkmanId, existCount } = ctx.data;
 
