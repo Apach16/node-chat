@@ -91,8 +91,8 @@ module.exports = {
         const {
             username, password,
         } = ctx.data;
-        assert(username, 'username');
-        assert(password, 'password');
+        assert(username, 'invalid username');
+        assert(password, 'invalid password');
 
         const user = await User.findOne({ username });
         assert(user, 'user');

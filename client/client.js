@@ -1,18 +1,12 @@
-const IO = require('socket.io-client');
-
-const config = require('../config/client');
-
-const options = {
-    // reconnectionDelay: 1000,
-};
-
-const socket = new IO(config.server, options);
+const socket = require('./socket');
 
 socket.on('connect', async () => {
-    // TODO: client logic here
-    const username = 'test';
-    const password = '123456';
-    await register(username, password);
+    console.log('connected');
+    await register('test', 'test');
+
+    await login('test', 'test');
+
+    await sendMessage('5bbcbe71cee8625b25e46301', 'text', 'message to group');
 });
 
 socket.on('disconnect', () => {
@@ -32,15 +26,34 @@ function fetch(event, data = {}) {
 }
 
 async function register(username, password) {
-    try {
-        const [err, res] = await fetch('register', {
-            username,
-            password,
-        });
-        console.log('err', err, 'res', res);
-    } catch (err) {
-        console.log('err', err);
-    }
+    const [err, res] = await fetch('register', {
+        username,
+        password,
+    });
+    console.log('register err:', err, 'res', res);
 }
 
-module.exports = socket;
+async function login(username, password) {
+    const [err, res] = await fetch('login', {
+        username,
+        password,
+    });
+    if (err) {
+        console.log('login error:', err);
+        return;
+    }
+    console.log('login response:', res);
+}
+
+async function sendMessage(to, type, content) {
+    const [err, res] = await fetch('sendMessage', {
+        to,
+        type,
+        content,
+    });
+    if (err) {
+        console.log('sendMessage error:', err);
+        return;
+    }
+    console.log('sendMessage: response', res);
+}
